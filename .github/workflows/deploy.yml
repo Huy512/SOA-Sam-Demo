@@ -1,0 +1,46 @@
+name: Apiapp auto build
+
+on:
+  push:
+    paths:
+      - 'hello_world/**' # Kích hoạt workflow khi có thay đổi trong thư mục hello_world
+
+permissions:
+  id-token: write # Quyền ghi token để xác thực với AWS
+  contents: read # Quyền đọc nội dung repository
+  pull-requests: write # Quyền ghi vào pull requests
+  issues: write # Quyền ghi vào issues
+  repository-projects: write # Quyền ghi vào projects của repository
+
+jobs:
+  terraform:
+    runs-on: ubuntu-latest # Chạy job trên máy Ubuntu mới nhất
+    env:
+      AWS_REGION: us-east-1 # Vùng AWS được sử dụng
+      PACKER_VERSION: 1.10.0 # Phiên bản Packer để cài đặt
+      TERRAFORM_VERSION: 1.9.8 # Phiên bản Terraform để cài đặt
+      REPO_URL: https://github.com/longngo192/cmp-cicd.git # URL của repository Git
+
+    steps:
+      # Lấy mã nguồn từ repository
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # Lấy toàn bộ lịch sử commit để đảm bảo có commit hash chính xác
+
+      - uses: actions/checkout@v3
+      - uses: actions/setup-python@v3
+      - uses: aws-actions/setup-sam@v2
+
+      # Cấu hình thông tin xác thực AWS
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN }} # Vai trò AWS để xác thực
+          aws-region: ${{ env.AWS_REGION }} # Vùng AWS được chỉ định
+
+      - name: SAM Build
+        run: sam build
+
+      - name: SAM Deploy
+        run: sam deploy --no-confirm-changeset --no-fail-on-empty-changeset --stack-name soa-sam-app --capabilities CAPABILITY_IAM --region us-east-1
