@@ -3,7 +3,7 @@ name: Apiapp auto build
 on:
   push:
     paths:
-      - 'hello_world/**' # Kích hoạt workflow khi có thay đổi trong thư mục hello_world
+      - "hello_world/**" # Kích hoạt workflow khi có thay đổi trong thư mục hello_world
 
 permissions:
   id-token: write # Quyền ghi token để xác thực với AWS
@@ -29,8 +29,8 @@ jobs:
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
-          role-to-assume: ${{ secrets.AWS_ROLE_ARN }} # Vai trò AWS để xác thực
-          aws-region: ${{ secrets.AWS_REGION }} # Vùng AWS được chỉ định
+          role-to-assume: arn:aws:iam::682033500402:role/SOA-GitHubActions-SAMDeploy # Vai trò AWS để xác thực
+          aws-region: us-east-1 # Vùng AWS được chỉ định
 
       - name: SAM Build
         run: sam build
